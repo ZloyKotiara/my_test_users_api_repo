@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using users_api.DBRepository;
 using users_api.DTO;
+using users_api.MappingExtensions;
 using users_api.Models;
 
 namespace users_api.Controllers
@@ -20,14 +21,14 @@ namespace users_api.Controllers
         }
 
         [HttpGet("user/{id:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Note>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<NoteApiDTO>))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetNotesByUserIdAsync(Guid id)
         {
             try
             {
                 var notes = await _noteRepository.GetNotesByUserIdAsync(id);
-                return notes == null ? NotFound() : Ok(notes);
+                return notes == null ? NotFound() : Ok(notes.Select(n => n.toDTO()));
             }
             catch (ArgumentNullException ex)
             {
@@ -42,14 +43,14 @@ namespace users_api.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Note))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NoteApiDTO))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetNoteByIdAsync(Guid id)
         {
             try
             {
                 var note = await _noteRepository.GetNoteByIdAsync(id);
-                return note == null ? NotFound() : Ok(note);
+                return note == null ? NotFound() : Ok(note.toDTO());
             }
             catch (ArgumentException ex)
             {

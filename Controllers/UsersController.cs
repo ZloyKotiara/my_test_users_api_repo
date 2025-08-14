@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using users_api.DBRepository;
 using users_api.Models;
 using users_api.DTO;
- 
+using users_api.MappingExtensions;
+
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]
 [ApiVersion("1.0")]
@@ -21,13 +22,13 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<User>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserApiDTO>))]
     public async Task<IActionResult> GetAllUsers()
     {
         try
         {
             var users = await _userRepository.GetUsersAsync();
-            return Ok(users);
+            return Ok(users.Select(u => u.toDTO()));
         }
         catch (Exception ex)
         {
@@ -37,14 +38,14 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(User))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserApiDTO))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(Guid id)
     {
         try
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            return user == null ? NotFound() : Ok(user);
+            return user == null ? NotFound() : Ok(user.toDTO());
         }
         catch (ArgumentException ex)
         {
@@ -58,14 +59,14 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(User))]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Guid))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser([FromBody] UserCreateDTO createDto)
     {
         try
         {
             var userId = await _userRepository.AddUserAsync(createDto);
-            return StatusCode(201);
+            return StatusCode(201, userId);
         }
         catch (ArgumentException ex)
         {
