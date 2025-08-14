@@ -81,6 +81,26 @@ namespace users_api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPatch]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> NoteUpdateAsync(NoteUpdateDTO noteUpdateDTO)
+        {
+            try
+            {
+                await _noteRepository.UpdateNoteAsync(noteUpdateDTO);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "error updating note");
+                return BadRequest("Internal server error");
+            }
+        }
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

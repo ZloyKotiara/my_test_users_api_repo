@@ -59,6 +59,29 @@ namespace users_api.DBRepository
                 throw;
             }
         }
+        public async Task UpdateNoteAsync(NoteUpdateDTO updateDto)
+        {
+            NoteUpdateDTO.Check(updateDto);
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var updatedCount = await _context.Notes
+                    .Where(n => n.Id == updateDto.NoteId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(n => n.Content, updateDto.Content));
+
+                if (updatedCount == 0)
+                    throw new InvalidOperationException($"Note with id {updateDto.NoteId} not found");
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
         public async Task DeleteNoteByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
@@ -71,7 +94,7 @@ namespace users_api.DBRepository
                     Where(n => n.Id == id).
                     ExecuteDeleteAsync();
                 if (deletedCount == 0)
-                    throw new KeyNotFoundException($"note with if {id} not found");
+                    throw new KeyNotFoundException($"note with id {id} not found");
                 await transaction.CommitAsync();
             }
             catch

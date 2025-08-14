@@ -83,14 +83,14 @@ public class UsersController : ControllerBase
     }
 
     [HttpPatch]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUserAsync(UserUpdateDTO userUpdateDTO)
     {
         try
         {
             await _userRepository.UpdateUserInfoAsync(userUpdateDTO);
-            return Ok();
+            return NoContent();
         }
         catch (InvalidOperationException ex)
         {
